@@ -29,8 +29,48 @@ class App extends Component {
   renderChart() {
     const data = this.state.wordFrequency.sort((a,b)=>b[1]-a[1]).slice(0,5)
     console.log(data)
-    // your code here
     
+    if (data.length === 0) return;
+    
+    const width = 1000;
+    const height = 400;
+    
+    d3.select(".svg_parent")
+      .attr("width", width)
+      .attr("height", height);
+    
+    const uniqueFrequencies = [...new Set(data.map(d => d[1]))].sort((a, b) => b - a);
+    const getFontSize = (frequency) => {
+      const groupIndex = uniqueFrequencies.indexOf(frequency);
+      return 50 - (groupIndex * 8);
+    };
+    
+    d3.select(".svg_parent").selectAll("text").data(data, d => d[0])
+      .join(
+        enter => enter.append("text")
+          .text(d => d[0])
+          .attr("x", (d, i) => 100 + i * 180)
+          .attr("y", (d, i) => height / 2)
+          .attr("text-anchor", "middle")
+          .style("font-family", "Arial, sans-serif")
+          .style("font-weight", "bold")
+          .style("fill", "black")
+          .style("opacity", 0)
+          .style("font-size", "0px")
+          .transition()
+          .duration(1000)
+          .delay((d, i) => i * 250)
+          .style("opacity", 1)
+          .style("font-size", d => `${getFontSize(d[1])}px`),
+        
+        update => update
+          .transition()
+          .duration(1200)
+          .ease(d3.easeCubicInOut)
+          .style("font-size", d => `${getFontSize(d[1])}px`)
+          .attr("x", (d, i) => 100 + i * 180)
+          .attr("y", (d, i) => height / 2)
+      );
   }
 
   render() {
